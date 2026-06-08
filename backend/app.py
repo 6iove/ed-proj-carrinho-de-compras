@@ -27,7 +27,7 @@ def cadastrar_produto():
 
     return jsonify(produto_salvo)
 
-#aaqui eu listo no servidor http://localhost:8000/produtos no navegador 
+#aqui eu listo no servidor http://localhost:8000/produtos no navegador 
 # listar produtos
 @app.route('/produtos', methods=['GET'])
 def listar_produtos():
