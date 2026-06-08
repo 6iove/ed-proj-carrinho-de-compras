@@ -71,6 +71,8 @@ CORS(app)
 array_produtos = ArrayProdutos()
 carrinho = Carrinho()
 
+historico_compras = []
+
 # Rota para cadastrar produto
 @app.route('/produtos', methods=['POST'])
 def cadastrar_produto():
@@ -157,8 +159,17 @@ def limpar_carrinho():
 def finalizar_compra():
     if not carrinho.items:
         return jsonify({"erro": "Carrinho vazio"}), 400
+    
+    compra_finalizada = carrinho.items.copy()
+    historico_compras.append(compra_finalizada)
+    
     carrinho.items.clear()
     return jsonify({"mensagem": "Compra finalizada com sucesso"})
+
+# Guarda copia da compra finalizada no histórico
+@app.route('/historico', methods=['GET'])
+def obter_historico():
+    return jsonify(historico_compras)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

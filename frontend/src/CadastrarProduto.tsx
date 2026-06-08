@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-
 interface CadastrarProdutoProps {
   onSalvar: (produto: {
     nome: string
