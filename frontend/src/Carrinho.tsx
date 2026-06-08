@@ -39,7 +39,7 @@ export default function Carrinho({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
+      <div className="fixed inset-0  bg-opacity-50" onClick={onClose} />
 
       <div className="fixed right-0 top-0 h-screen w-full max-w-md bg-white shadow-lg flex flex-col">
         <div className="flex justify-between border-b p-4">
