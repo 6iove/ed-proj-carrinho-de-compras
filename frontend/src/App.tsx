@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import CadastrarProduto from './CadastrarProduto'
+import { FaShoppingCart } from "react-icons/fa";
 
 interface Produto {
   id: number
@@ -53,9 +54,12 @@ function App() {
             <h1 className="text-4xl font-bold text-slate-950">Produtos</h1>
           </div>
 
-          <button type="button" className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
-            Cadastrar Produto
-          </button>
+          <div className="flex gap-3 items-center">
+            <button type="button" className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
+              Cadastrar Produto
+            </button>
+            <FaShoppingCart size={30} />
+          </div>
         </div>
       </header>
 
