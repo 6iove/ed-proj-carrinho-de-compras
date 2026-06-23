@@ -269,7 +269,6 @@ function App() {
         </div>
         )}
         
-        {/* COMPONENTE DE BUSCA ADICIONADO AQUI */}
           <BuscarProduto
             busca={busca}
             ordem={ordem}
