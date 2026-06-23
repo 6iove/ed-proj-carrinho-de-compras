@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import CadastrarProduto from './CadastrarProduto'
 import Carrinho from './Carrinho'
-import { FaShoppingCart } from "react-icons/fa";
+import Historico from './Historico'
+import { FaShoppingCart, FaHistory } from "react-icons/fa";
+import BuscarProduto from './Buscar_produto'; 
 
 interface Produto {
   id: number
@@ -18,15 +20,23 @@ interface ItemCarrinho {
   total: number
 }
 
+type CompraBruta = { [key: number]: number }
+
 // App simples de carrinho para aprender React e conectar com o backend
 function App() {
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [erro, setErro] = useState<string | null>(null)
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [carrinhoAberto, setCarrinhoAberto] = useState(false)
   const [itensCarrinho, setItensCarrinho] = useState<ItemCarrinho[]>([])
+  const [historicoAberto, setHistoricoAberto] = useState(false)
+  const [historico, setHistorico] = useState<CompraBruta[]>([])
   const [totalCarrinho, setTotalCarrinho] = useState(0)
   const [carregando, setCarregando] = useState(false)
   const [quantidadeSelecionada, setQuantidadeSelecionada] = useState<{ [key: number]: number }>({})
+  const [busca, setBusca] = useState('')
+  const [ordem, setOrdem] = useState<'nome' | 'preco'>('nome')
+  const [direcao, setDirecao] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     carregarProdutos()
@@ -39,26 +49,39 @@ function App() {
     }
   }, [carrinhoAberto])
 
-  function carregarProdutos() {
-    fetch('http://localhost:8000/produtos')
-      .then((response) => {
-        if (!response.ok) throw new Error('Falha ao carregar produtos')
-        return response.json()
-      })
-      .then((data: Produto[]) => {
-        setProdutos(data)
-        const iniciais = data.reduce((acc: { [key: number]: number }, produto: Produto) => {
-          acc[produto.id] = 1
-          return acc
-        }, {})
-        setQuantidadeSelecionada(iniciais)
-      })
-      .catch((error) => {
-        if (error instanceof Error) {
-          setErro(error.message)
-        }
-      })
-  }
+  useEffect(() => {
+    if (historicoAberto) {
+      carregarHistorico()
+    }
+  }, [historicoAberto])
+
+  useEffect(() => {
+  carregarProdutos()
+}, [busca, ordem, direcao])
+
+ function carregarProdutos() {
+  const params = new URLSearchParams()
+  if (busca) params.append('busca', busca)
+  params.append('ordem', ordem)
+  params.append('direcao', direcao)
+
+  fetch(`http://localhost:8000/produtos?${params.toString()}`)
+    .then((response) => {
+      if (!response.ok) throw new Error('Falha ao carregar produtos')
+      return response.json()
+    })
+    .then((data: Produto[]) => {
+      setProdutos(data)
+      const iniciais = data.reduce((acc: { [key: number]: number }, produto: Produto) => {
+        acc[produto.id] = 1
+        return acc
+      }, {})
+      setQuantidadeSelecionada(iniciais)
+    })
+    .catch((error) => {
+      if (error instanceof Error) setErro(error.message)
+    })
+}
 
   function carregarCarrinho() {
     fetch('http://localhost:8000/carrinho')
@@ -74,6 +97,20 @@ function App() {
         if (error instanceof Error) {
           setErro(error.message)
         }
+      })
+  }
+
+  function carregarHistorico() {
+    fetch('http://localhost:8000/historico')
+      .then((response) => {
+        if (!response.ok) throw new Error('Falha ao carregar histórico')
+        return response.json()
+      })
+      .then((data: CompraBruta[]) => {
+        setHistorico(data)
+      })
+      .catch((error) => {
+        if (error instanceof Error) setErro(error.message)
       })
   }
 
@@ -149,6 +186,7 @@ function App() {
       })
       .then(() => {
         carregarProdutos()
+        carregarHistorico() // atualiza o historico assim que a compra termina
         setItensCarrinho([])
         setTotalCarrinho(0)
         setCarrinhoAberto(false)
@@ -168,7 +206,7 @@ function App() {
     }))
   }
 
-  function handleSalvarProduto(novoProduto: Omit<Produto, 'id'>) {
+  function handleSalvarProduto(novoProduto: {nome: string, preco: number, quantidade: number}): Promise<void> {
     setErro(null)
     return fetch('http://localhost:8000/produtos', {
       method: 'POST',
@@ -192,6 +230,7 @@ function App() {
       })
   }
 
+
   return (
     <div className="min-h-screen bg-purple-100">
       <header className="bg-purple-200">
@@ -201,9 +240,10 @@ function App() {
           </div>
 
           <div className="flex gap-3 items-center">
-            <button type="button" className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
+            <button type="button" onClick={() => setMostrarFormulario(true)} className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
               Cadastrar Produto
             </button>
+
             <button onClick={() => setCarrinhoAberto(true)} className="relative cursor-pointer hover:opacity-80 transition" >
               <FaShoppingCart size={30} className="text-slate-950" />
               {itensCarrinho.length > 0 && (
@@ -212,16 +252,32 @@ function App() {
                 </span>
               )}
             </button>
+
+            <button onClick={() => setHistoricoAberto(true)} className="relative cursor-pointer hover:opacity-80 transition">
+              <FaHistory size={26} />
+            </button>
+            
           </div>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto space-y-8 mt-8 px-6 md:px-10">
-        <div className="bg-white p-6 rounded-3xl shadow">
-          <CadastrarProduto onSalvar={handleSalvarProduto} />
+        {mostrarFormulario && ( 
+          <div className="bg-white p-6 rounded-3xl shadow">
+          <CadastrarProduto onSalvar={handleSalvarProduto} onFechar={() => setMostrarFormulario(false)} />
           {erro ? <p className="mt-4 text-sm text-red-600">{erro}</p> : null}
         </div>
-
+        )}
+        
+          <BuscarProduto
+            busca={busca}
+            ordem={ordem}
+            direcao={direcao}
+            onBuscaChange={setBusca}
+            onOrdemChange={setOrdem}
+            onDirecaoChange={setDirecao}
+          />
+        
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {produtos.map((produto) => (
             <article key={produto.id} className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition flex flex-col">
@@ -261,8 +317,16 @@ function App() {
         onRemover={handleRemoverDoCarrinho}
         onFinalizar={handleFinalizarCompra}
       />
+
+      <Historico
+        isOpen={historicoAberto}
+        onClose={() => setHistoricoAberto(false)}
+        compras={historico}
+        produtos={produtos}
+      />
     </div>
   )
 }
+
 
 export default App
