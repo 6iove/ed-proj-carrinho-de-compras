@@ -3,7 +3,7 @@ import CadastrarProduto from './CadastrarProduto'
 import Carrinho from './Carrinho'
 import Historico from './Historico'
 import { FaShoppingCart, FaHistory } from "react-icons/fa";
-import BuscarProduto from './Buscar_produto'; // <-- NOVO
+import BuscarProduto from './Buscar_produto'; 
 
 interface Produto {
   id: number
