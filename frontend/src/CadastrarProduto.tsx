@@ -8,12 +8,8 @@ interface CadastrarProdutoProps {
     quantidade: number
   }) => Promise<void>
   onFechar?: () => void
-  }) => Promise<void>
-  onFechar?: () => void
 }
 
-
-export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdutoProps) {
 
 export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdutoProps) {
   const [nome, setNome] = useState('')
@@ -21,17 +17,14 @@ export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdut
   const [quantidade, setQuantidade] = useState('')
 
 
-
   async function handleSalvar() {
     const precoNumero = Number(preco)
     const quantidadeNumero = Number(quantidade)
 
 
-
     if (!nome.trim() || Number.isNaN(precoNumero) || Number.isNaN(quantidadeNumero)) {
       return
     }
-
 
 
     await onSalvar({
@@ -41,18 +34,13 @@ export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdut
     })
 
 
-
     setNome('')
     setPreco('')
     setQuantidade('')
 
 
     onFechar?.()
-
-
-    onFechar?.()
   }
-
 
 
   return (
@@ -62,11 +50,9 @@ export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdut
           <h2 className="text-2xl font-semibold">Cadastrar produto</h2>
         </div>
         <button type="button" onClick={onFechar} className="self-start rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition">
-        <button type="button" onClick={onFechar} className="self-start rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition">
           Fechar
         </button>
       </div>
-
 
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -76,10 +62,7 @@ export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdut
       </div>
 
 
-
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <button type="button" className="rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"> Cancelar </button>
-        <button type="button" onClick={handleSalvar} className="rounded-full bg-purple-700 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-800 transition" > Salvar produto </button>
         <button type="button" className="rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"> Cancelar </button>
         <button type="button" onClick={handleSalvar} className="rounded-full bg-purple-700 px-6 py-3 text-sm font-semibold text-white hover:bg-purple-800 transition" > Salvar produto </button>
       </div>

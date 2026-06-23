@@ -38,14 +38,176 @@ function App() {
   const [busca, setBusca] = useState('')
   const [ordem, setOrdem] = useState<'nome' | 'preco'>('nome')
   const [direcao, setDirecao] = useState<'asc' | 'desc'>('asc')
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
-
 
   useEffect(() => {
     carregarProdutos()
   }, [])
 
-  async function handleSalvarProduto(novoProduto: Omit<Produto, 'id'>) {
+  // Carregar carrinho ao abrir
+  useEffect(() => {
+    if (carrinhoAberto) {
+      carregarCarrinho()
+    }
+  }, [carrinhoAberto])
+
+  useEffect(() => {
+    if (historicoAberto) {
+      carregarHistorico()
+    }
+  }, [historicoAberto])
+
+  useEffect(() => {
+  carregarProdutos()
+}, [busca, ordem, direcao])
+
+ function carregarProdutos() {
+  const params = new URLSearchParams()
+  if (busca) params.append('busca', busca)
+  params.append('ordem', ordem)
+  params.append('direcao', direcao)
+
+  fetch(`http://localhost:8000/produtos?${params.toString()}`)
+    .then((response) => {
+      if (!response.ok) throw new Error('Falha ao carregar produtos')
+      return response.json()
+    })
+    .then((data: Produto[]) => {
+      setProdutos(data)
+      const iniciais = data.reduce((acc: { [key: number]: number }, produto: Produto) => {
+        acc[produto.id] = 1
+        return acc
+      }, {})
+      setQuantidadeSelecionada(iniciais)
+    })
+    .catch((error) => {
+      if (error instanceof Error) setErro(error.message)
+    })
+}
+
+  function carregarCarrinho() {
+    fetch('http://localhost:8000/carrinho')
+      .then((response) => {
+        if (!response.ok) throw new Error('Falha ao carregar carrinho')
+        return response.json()
+      })
+      .then((data) => {
+        setItensCarrinho(data.itens)
+        setTotalCarrinho(data.total)
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setErro(error.message)
+        }
+      })
+  }
+
+  function carregarHistorico() {
+    fetch('http://localhost:8000/historico')
+      .then((response) => {
+        if (!response.ok) throw new Error('Falha ao carregar histórico')
+        return response.json()
+      })
+      .then((data: CompraBruta[]) => {
+        setHistorico(data)
+      })
+      .catch((error) => {
+        if (error instanceof Error) setErro(error.message)
+      })
+  }
+
+  function handleAdicionarAoCarrinho(produtoId: number, quantidade: number) {
+    if (quantidade < 1) return
+    setCarregando(true)
+    // envio para o backend
+    fetch('http://localhost:8000/carrinho/adicionar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_produto: produtoId, quantidade }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.erro || 'Falha ao adicionar ao carrinho')
+          })
+        }
+        return response.json()
+      })
+      .then(() => {
+        carregarCarrinho()
+        carregarProdutos()
+        setCarrinhoAberto(true)
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setErro(error.message)
+        }
+      })
+      .finally(() => {
+        setCarregando(false)
+      })
+  }
+
+  function handleRemoverDoCarrinho(produtoId: number, quantidade: number) {
+    fetch('http://localhost:8000/carrinho/remover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_produto: produtoId, quantidade }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.erro || 'Falha ao remover do carrinho')
+          })
+        }
+        return response.json()
+      })
+      .then(() => {
+        carregarCarrinho()
+        carregarProdutos()
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setErro(error.message)
+        }
+      })
+  }
+
+  function handleFinalizarCompra() {
+    fetch('http://localhost:8000/carrinho/finalizar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.erro || 'Falha ao finalizar compra')
+          })
+        }
+        return response.json()
+      })
+      .then(() => {
+        carregarProdutos()
+        carregarHistorico() // atualiza o historico assim que a compra termina
+        setItensCarrinho([])
+        setTotalCarrinho(0)
+        setCarrinhoAberto(false)
+        alert('Compra finalizada com sucesso!')
+      })
+      .catch((error) => {
+        if (error instanceof Error) {
+          setErro(error.message)
+        }
+      })
+  }
+
+  function handleQuantidadeSelecionadaChange(produtoId: number, valor: number) {
+    setQuantidadeSelecionada((current) => ({
+      ...current,
+      [produtoId]: Math.max(1, valor),
+    }))
+  }
+
+  function handleSalvarProduto(novoProduto: {nome: string, preco: number, quantidade: number}): Promise<void> {
     setErro(null)
     return fetch('http://localhost:8000/produtos', {
       method: 'POST',
@@ -69,6 +231,7 @@ function App() {
       })
   }
 
+
   return (
     <div className="min-h-screen bg-purple-100">
       <header className="bg-purple-200">
@@ -78,8 +241,7 @@ function App() {
           </div>
 
           <div className="flex gap-3 items-center">
-  
-          <button type="button" onClick={() => setMostrarFormulario(true)} onClick={() => setMostrarFormulario(true)} className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
+            <button type="button" onClick={() => setMostrarFormulario(true)} className="inline-flex items-center justify-center rounded-full bg-purple-700 px-6 py-3 text-white font-semibold shadow hover:bg-purple-800 transition">
               Cadastrar Produto
             </button>
 
@@ -167,7 +329,6 @@ function App() {
     </div>
   )
 }
-
 
 
 export default App
