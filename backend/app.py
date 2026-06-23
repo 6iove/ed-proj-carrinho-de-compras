@@ -1,9 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Aqui vamos imaginar que temos classes simples para produtos e carrinho
-# (você pode criar em outro arquivo, mas vou deixar bem básico)
-
 class Produto:
     def __init__(self, id, nome, preco, quantidade):
         self.id = id
@@ -66,10 +63,9 @@ class Carrinho:
 app = Flask(__name__)
 CORS(app)
 
-# listas simples de produtos e carrinho para praticar
-
 array_produtos = ArrayProdutos()
 carrinho = Carrinho()
+historico_compras = []
 
 # Rota para cadastrar produto
 @app.route('/produtos', methods=['POST'])
@@ -85,9 +81,26 @@ def cadastrar_produto():
 # Rota para listar produtos
 @app.route('/produtos', methods=['GET'])
 def listar_produtos():
-    return jsonify(array_produtos.listar_produtos())
+    busca = request.args.get('busca', '').lower()
+    ordem = request.args.get('ordem', 'nome')
+    direcao = request.args.get('direcao', 'asc')
 
-# Adicionar produto ao carrinho e diminuir estoque
+    produtos = array_produtos.listar_produtos()
+
+    if busca:
+        produtos = [p for p in produtos if busca in p['nome'].lower()]
+
+    if ordem == 'nome':
+        produtos.sort(key=lambda p: p['nome'].lower())
+    elif ordem == 'preco':
+        if direcao == 'asc':
+            produtos.sort(key=lambda p: p['preco'])
+        else:
+            produtos.sort(key=lambda p: p['preco'], reverse=True)
+
+    return jsonify(produtos)
+
+# Adicionar produto ao carrinho
 @app.route('/carrinho/adicionar', methods=['POST'])
 def adicionar_ao_carrinho():
     dados = request.json
@@ -157,8 +170,18 @@ def limpar_carrinho():
 def finalizar_compra():
     if not carrinho.items:
         return jsonify({"erro": "Carrinho vazio"}), 400
+
+    compra_finalizada = carrinho.items.copy()
+    historico_compras.append(compra_finalizada)
+
     carrinho.items.clear()
     return jsonify({"mensagem": "Compra finalizada com sucesso"})
+
+# Histórico de compras
+@app.route('/historico', methods=['GET'])
+def obter_historico():
+    return jsonify(historico_compras)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

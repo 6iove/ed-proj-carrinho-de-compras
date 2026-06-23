@@ -1,29 +1,73 @@
-# ed-proj-carrinho-de-compras
+# React + TypeScript + Vite
 
-## Nome dos integrantes 
-- Izabella Araujo
-- Julia Caramori
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Projeto
-**Projeto 02 — Carrinho de compras**
+Currently, two official plugins are available:
 
-Simulação de um sistema de atendimento com fila de espera, como em uma clínica ou banco. O backend deve ser inteiramente em Python.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-**Requisitos funcionais:**
+## React Compiler
 
-- Cadastrar produto com nome, preço e quantidade em estoque
-- Adicionar produto ao carrinho com quantidade desejada
-- Remover produto do carrinho
-- Desfazer a última ação no carrinho (usando pilha)
-- Exibir resumo do carrinho com total atualizado
-- Finalizar compra e atualizar estoque
-- Exibir histórico de compras realizadas (usando lista encadeada)
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-**A definir em aula:**
+## Expanding the ESLint configuration
 
-- Ordenar produtos por nome ou preço
-- Buscar produto por nome ou categoria
-- Localização rápida de produto por código (tabela hash)
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Tecnologia front-end
-- React.js
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
