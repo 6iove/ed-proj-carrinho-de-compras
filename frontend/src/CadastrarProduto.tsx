@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-
 interface CadastrarProdutoProps {
   onSalvar: (produto: {
     nome: string
@@ -69,6 +68,3 @@ export default function CadastrarProduto({ onSalvar, onFechar }: CadastrarProdut
     </div>
   )
 }
-
-
-
