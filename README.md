@@ -1,4 +1,4 @@
-# Sistema de Carrinho de Compras 
+# Projeto 02 — Carrinho de compras 
 
 Este projeto simula o funcionamento de um carrinho de compras para uma loja virtual. O objetivo principal é aplicar conceitos práticos de **Estruturas de Dados** integrado a um ecossistema real de desenvolvimento, utilizando um backend em **Python (Flask)** e uma interface em **React.js**
 
@@ -61,3 +61,9 @@ Inicie o servidor de desenvolvimento:
 ```bash
 npm run dev
 ```
+
+---
+
+Integrantes do grupo: 
+- Julia Caramori
+- Izabella Araujo
